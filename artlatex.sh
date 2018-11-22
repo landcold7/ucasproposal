@@ -27,9 +27,10 @@ else
     echo "TeX engine parameters: <l:lualatex>, <p:pdflatex>, <x:xelatex>"
     echo "Bib engine parameters: < :none>, <a:bibtex>, <b:biber>"
     echo "---------------------------------------------------------------------------"
-    exit
+    exit 1
 fi
 FileName=${FileName/.tex}
+FLAG=""
 #-
 #-> Get tex compiler
 #-
@@ -40,6 +41,7 @@ else
         TexCompiler="pdflatex"
     else
         TexCompiler="xelatex"
+        FLAG="--interaction=nonstopmode"
     fi
 fi
 #-
@@ -63,7 +65,7 @@ fi
 #-
 #-> Set LaTeX environmental variables to add subdirs into search path
 #-
-export TEXINPUTS=".//:$TEXINPUTS" # paths to locate .tex 
+export TEXINPUTS=".//:$TEXINPUTS" # paths to locate .tex
 export BIBINPUTS=".//:$BIBINPUTS" # paths to locate .bib
 export BSTINPUTS=".//:$BSTINPUTS" # paths to locate .bst
 #---------------------------------------------------------------------------#
@@ -72,7 +74,7 @@ export BSTINPUTS=".//:$BSTINPUTS" # paths to locate .bst
 #-
 #-> Build textual content and auxiliary files
 #-
-$TexCompiler -output-directory=$Tmp $FileName || exit
+$TexCompiler $FLAG -output-directory=$Tmp $FileName || exit 1
 #-
 #-> Build references and links
 #-
@@ -82,9 +84,9 @@ if [[ -n $BibCompiler ]]; then
     #- extract and format bibliography database via auxiliary files
     $BibCompiler $Tmp/$FileName
     #- insert reference indicators into textual content
-    $TexCompiler -output-directory=$Tmp $FileName || exit
+    $TexCompiler -output-directory=$Tmp $FileName || exit 1
     #- refine citation references and links
-    $TexCompiler -output-directory=$Tmp $FileName || exit
+    $TexCompiler -output-directory=$Tmp $FileName || exit 1
 fi
 #---------------------------------------------------------------------------#
 #->> Postprocessing
@@ -103,7 +105,7 @@ fi
 #-
 #-> Open the compiled file
 #-
-$PDFviewer ./$Tmp/"$FileName".pdf || exit
+$PDFviewer ./$Tmp/"$FileName".pdf || exit 1
 echo "---------------------------------------------------------------------------"
 echo "$TexCompiler $BibCompiler "$FileName".tex finished..."
 echo "---------------------------------------------------------------------------"
